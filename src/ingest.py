@@ -11,6 +11,16 @@ from config import *
 import sys
 
 import logging
+
+import os
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -67,9 +77,36 @@ def ingest_pdf(pdf_path: Path):
 
     logger.info(f"Ingestion complete: {len(chunks)} chunks stored from {pdf_path.name}")
 
+def is_already_ingested(pdf_path: Path, collection) -> bool:
+    """Check if a pdf has already been ingested by looking for its chunks"""
+    results = collection.get(where={"source":pdf_path.name})
+    return len(results["ids"]) > 0
+
+def ingest_folder(folder_path: Path):
+    """Ingest all pdfs in a folder"""
+    client = chromadb.PersistentClient(path=CHROMA_PATH)
+    collection = client.get_or_create_collection(COLLECTION_NAME)
+
+    pdfs = list(folder_path.glob("*.pdf"))
+    if not pdfs:
+        logger.info(f"No pdfs found in {folder_path}")
+        return
+    
+    logger.info(f"Found {len(pdfs)} pdfs in {folder_path}")
+
+    for pdf_path in pdfs:
+        if is_already_ingested(pdf_path, collection):
+            logger.info(f"Skipping {pdf_path.name} as it has already been ingested, skipping...")
+            continue
+        ingest_pdf(pdf_path)
+
+        
+
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python src/ingest.py <path_to_pdf>")
+        print("Usage: python src/ingest.py <path_to_pdf_or_folder>")
         sys.exit(1)
 
     pdf_path = Path(sys.argv[1])
@@ -77,7 +114,17 @@ if __name__ == "__main__":
         print(f"File not found: {pdf_path}")
         sys.exit(1)
 
-    ingest_pdf(pdf_path)
+    if pdf_path.is_dir():
+        ingest_folder(pdf_path)
+    else:
+        client = chromadb.PersistentClient(path=CHROMA_PATH)
+        collection = client.get_or_create_collection(COLLECTION_NAME)
+        if is_already_ingested(pdf_path, collection):
+            print(f"File already ingested: {pdf_path}")
+            logger.info(f"File already ingested: {pdf_path}, skipping...")
+        else:
+            ingest_pdf(pdf_path)
+
 
 
 
