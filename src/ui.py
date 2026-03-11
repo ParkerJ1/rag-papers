@@ -12,11 +12,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def handle_query(question: str) -> tuple[str, str]:
+def handle_query(question: str, source_filter: str) -> tuple[str, str]:
     if not question.strip():
         return "Please enter a question", ""
     
-    result = query(question)
+    source_filter = None if source_filter == "All papers" else source_filter
+    result = query(question, source_filter=source_filter)
     answer = result["answer"]
     sources = "\n".join(result["source"])
     return answer, sources
@@ -33,6 +34,21 @@ def handle_ingest(files) -> str:
 
     return f"{count} files ingested."
 
+def get_source() -> list[str]:
+    """Get list of ingested PDF sources"""
+    try:
+        import chromadb
+        from config import CHROMA_PATH, COLLECTION_NAME
+
+        client = chromadb.PersistentClient(path=CHROMA_PATH)
+        collection = client.get_collection(name=COLLECTION_NAME)
+        results = collection.get(include=["metadatas"])
+        sources = sorted(set([m["source"] for m in results["metadatas"]]))
+        return sources
+    except Exception as e:
+        logger.error(f"Failed to load sources: {e}")
+        return ["All papers"]
+    
 with gr.Blocks() as app:
     gr.Markdown("# Research Paper RAG")
     gr.Markdown("Query your local library of research papers using LFM2.")
@@ -42,6 +58,11 @@ with gr.Blocks() as app:
             label="Question",
             placeholder="Enter your question here...",
             lines=2
+        )
+        source_dropdown = gr.Dropdown(
+            label="Filter by paper",
+            choices=["All papers"] + get_source(),
+            value="All papers"
         )
         submit_btn = gr.Button("Submit", variant="primary")
         answer_output = gr.Textbox(
@@ -56,7 +77,7 @@ with gr.Blocks() as app:
         )
         submit_btn.click(
             fn=handle_query,
-            inputs=question_input,
+            inputs=[question_input,source_dropdown],
             outputs=[answer_output, sources_output]
         )
 

@@ -32,6 +32,7 @@ def main():
     # Query subcommand
     query_parser = subparsers.add_parser("query", help="Query the vector store with a question")
     query_parser.add_argument("question", type=str, help="Question to ask the vector store")
+    query_parser.add_argument("--filter", type=str, default = None, help="Filter results to a specific source PDF by filename")
 
     args = parser.parse_args()
 
@@ -44,7 +45,7 @@ def main():
         else:
             ingest_pdf(args.path)
     elif args.command == "query":
-        result = query(args.question)
+        result = query(args.question, source_filter=args.filter)
         print(f"Question: {result['question']}")
         print(f"Answer: {result['answer']}")
         print(f"Source: {set(result['source'])}")

@@ -7,24 +7,37 @@ import chromadb
 
 from config import *
 
+import os
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 logger = logging.getLogger(__name__)
 
-def retrieve_chunks(question: str, collection) -> list[dict]:
+def retrieve_chunks(question: str, collection, source_filter: str = None) -> list[dict]:
     """Embed the question and retrieve top K relevant chunks"""
 
     logging.info("Embedding query")
     model = SentenceTransformer(EMBED_MODEL)
     question_embedding = model.encode(question).tolist()
 
-    results = collection.query(
-        query_embeddings=[question_embedding],
-        n_results=TOP_K,
-        include=["documents", "metadatas", "distances"]
-    )
+    query_kwargs = {
+        "query_embeddings": [question_embedding],
+        "n_results": TOP_K,
+        "include": ["documents", "metadatas", "distances"]
+    }
+
+    if source_filter:
+        query_kwargs["where"] = {"source": {"$eq": source_filter}}
+    
+    results = collection.query(**query_kwargs)
 
     #Rework results into chunks
     chunks = []
@@ -59,14 +72,14 @@ def generate_answer(context: str, question: str) -> str:
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"]
 
-def query(question: str) -> dict:
+def query(question: str, source_filter: str = None) -> dict:
     """Full query pipeline"""
     logger.info(f"Query: {question}")
 
     client = chromadb.PersistentClient(path=CHROMA_PATH)
     collection = client.get_collection(name=COLLECTION_NAME)
 
-    chunks = retrieve_chunks(question, collection)
+    chunks = retrieve_chunks(question, collection, source_filter=source_filter)
     logger.info(f"Retrieved {len(chunks)} chunks")
 
     context = build_context(chunks)
