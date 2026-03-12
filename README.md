@@ -116,13 +116,18 @@ All key parameters are in `src/config.py`:
 
 > **Note:** This section reflects deliberate choices made during development.
 
+> **Note:** TODO
+
 **Chunking strategy**
+Chunks are 500 characters with an overlap of 50 characters. This worked well as a proof on concept on single well targetted questions. At this stage, the chunking strategy is naive - fixed length, character-based, semantic unaware. These are all areas ripe for improvement. 
 <!-- Explain your choice of chunk size (500 chars) and overlap (50 chars). What did you observe? Were chunks too large, too small? Did you experiment? -->
 
 **Embedding model**
+The embedding model chosen was all-MiniLM-L6-v2, a sentence-transformers embedding model that maps sentences and paragraphs to a 384 dimensional dense vector space, commonly used for semantic search.
 <!-- Why all-MiniLM-L6-v2? What tradeoffs did you consider — speed vs quality, model size, etc? -->
 
 **LFM2 over other local models**
+
 <!-- Why LFM2.5-1.2B specifically? What does the Liquid AI architecture offer for RAG tasks? -->
 
 **Deduplication approach**
@@ -135,9 +140,10 @@ All key parameters are in `src/config.py`:
 
 ## Limitations
 
-- Small LFM2 models are not well-suited for knowledge-intensive or programming tasks — retrieval quality matters more than generation quality at this scale
-- Chunking is character-based rather than semantic — a sentence-aware splitter would likely improve retrieval precision
-- No re-ranking of retrieved chunks before generation
+- Small LFM2 models are not well-suited for knowledge-intensive or programming tasks. Because retrievl quality is more important than generation quality at this scale, this is not important.
+- Chunking is character-based rather than semantic. Implementing a more sophisticated chunking strategy would likely improve retrieval precision.
+- No re-ranking of retrieved chunks before generation. Again, implementing a re-ranking stage would likely improve generation quality.
+
 
 ---
 

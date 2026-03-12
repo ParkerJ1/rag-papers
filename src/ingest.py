@@ -1,30 +1,29 @@
-import fitz
-import chromadb
-import chromadb.config
-chromadb.config.Settings(anonymized_telemetry=False)
-
-from sentence_transformers import SentenceTransformer
-from pathlib import Path
-
-from config import *
-
-import sys
-
-import logging
-
 import os
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["ANONYMIZED_TELEMETRY"] = "False"
 
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
-logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+import logging
+import sys
+from pathlib import Path
+
+import fitz
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+from config import *
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
+
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,15 +36,50 @@ def extract_text(pdf_path: Path) -> str:
         text += page.get_text()
     return text
 
-def chunk_text(text :str, chunk_size: int, overlap: int) -> list[str]:
-    """Split text into overlapping chunks"""
+def chunk_text(text :str, chunk_size: int, overlap: int, split_sentences: bool = True) -> list[str]:
+    """Split text into overlapping chunks - possibly respecting sentence boundaries."""
     chunks = []
     
-    for i in range(0, len(text), chunk_size - overlap):
-        chunk = text[i:i + chunk_size]
-        chunks.append(chunk)
+    if split_sentences:
+        import nltk
+        sentences = nltk.sent_tokenize(text)
+        current_chunk = []
+        current_size = 0
 
-    return chunks
+        for sentence in sentences:
+            sentence_size = len(sentence)
+
+            if current_size + sentence_size > chunk_size and current_chunk:
+                chunks.append(" ".join(current_chunk))
+
+                # Keep last few sentences for overlap
+                # Reach back into current_chunk to grab overlap number of characters, 
+                # use this to initialise next iteration of current_chunk
+                overlap_chunk = []
+                overlap_size = 0
+                for s in reversed(current_chunk): #Goes through them in reverse order
+                    if overlap_size + len(s) > overlap:
+                        break
+                    overlap_chunk.insert(0, s) # inserts at the front, so counteracts the reversing
+                    overlap_size += len(s)
+
+                current_chunk = overlap_chunk
+                current_size = overlap_size
+
+            current_chunk.append(sentence)
+            current_size += sentence_size
+
+        if current_chunk:
+            chunks.append(" ".join(current_chunk))
+
+        return chunks
+
+    else:
+        for i in range(0, len(text), chunk_size - overlap):
+            chunk = text[i:i + chunk_size]
+            chunks.append(chunk)
+
+        return chunks
 
 def ingest_pdf(pdf_path: Path):
     """Full ingestion pipeline for pdf"""
