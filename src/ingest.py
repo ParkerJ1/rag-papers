@@ -26,6 +26,8 @@ logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
+_embed_model = SentenceTransformer(EMBED_MODEL)
+
 
 def extract_text(pdf_path: Path) -> str:
     """Extract text from a PDF file."""
@@ -91,8 +93,7 @@ def ingest_pdf(pdf_path: Path):
     chunks = chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
 
     logger.info(f"Embedding: {pdf_path.name}")
-    model = SentenceTransformer(EMBED_MODEL)
-    embeddings = model.encode(chunks)
+    embeddings = _embed_model.encode(chunks)
 
     # Storing
     logger.info(f"Storing: {pdf_path.name} into {CHROMA_PATH}")

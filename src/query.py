@@ -21,12 +21,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+_embed_model = SentenceTransformer(EMBED_MODEL)
+
 def retrieve_chunks(question: str, collection, source_filter: str = None) -> list[dict]:
     """Embed the question and retrieve top K relevant chunks"""
 
     logging.info("Embedding query")
-    model = SentenceTransformer(EMBED_MODEL)
-    question_embedding = model.encode(question).tolist()
+    question_embedding = _embed_model.encode(question).tolist()
 
     query_kwargs = {
         "query_embeddings": [question_embedding],
