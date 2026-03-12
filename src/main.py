@@ -49,6 +49,8 @@ def main():
         print(f"Question: {result['question']}")
         print(f"Answer: {result['answer']}")
         print(f"Source: {set(result['source'])}")
+        print(f"Confidence: {result['confidence']['level']} -- {result['confidence']['mean_distance']}")
+
 
 if __name__ == "__main__":
     main()

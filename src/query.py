@@ -23,6 +23,22 @@ logger = logging.getLogger(__name__)
 
 _embed_model = SentenceTransformer(EMBED_MODEL)
 
+def assess_confidence(chunks: list[dict]) -> dict:
+    """ Returns mean confidence rating of returned chunks."""
+
+    if not chunks:
+        return {"level": "none",
+                "mean_distance": None}
+
+    total_distance = sum([chunk["distance"] for chunk in chunks])
+    mean_distance = total_distance / len(chunks)
+
+    level = "high" if mean_distance < 0.5 else "medium" if mean_distance < 1.0 else "low"
+
+    return {"level": level,
+            "mean_distance": mean_distance}
+
+
 def retrieve_chunks(question: str, collection, source_filter: str = None) -> list[dict]:
     """Embed the question and retrieve top K relevant chunks"""
 
@@ -85,12 +101,18 @@ def query(question: str, source_filter: str = None) -> dict:
 
     context = build_context(chunks)
     answer = generate_answer(context, question)
+    confidence = assess_confidence(chunks)
+    logger.info(f"Confidence: {confidence}")
+
 
     return {
         "question": question,
         "answer": answer,
-        "source": [c["source"] for c in chunks]
+        "source": [c["source"] for c in chunks],
+        "confidence": confidence
     }
+
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
