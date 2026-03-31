@@ -57,7 +57,7 @@ def assess_confidence(chunks: list[dict]) -> dict:
     return {"level": level,
             "mean_distance": mean_distance}
 
-def retrieve_chunks(question: str, collection, source_filter: str = None) -> list[dict]:
+def retrieve_chunks(question: str, collection, source_filter: str | None = None) -> list[dict]:
     """Embed the question and retrieve top K relevant chunks"""
 
     logging.info("Embedding query")
@@ -114,7 +114,7 @@ def generate_answer(context: str, question: str) -> str:
         logger.error(f"LLM server returned an error: {e}")
         return f"Error: LLM server returned an error: {e}"
 
-def query(question: str, source_filter: str = None) -> dict:
+def query(question: str, source_filter: str | None = None) -> dict:
     """Full query pipeline"""
     logger.info(f"Query: {question}")
 
@@ -136,7 +136,8 @@ def query(question: str, source_filter: str = None) -> dict:
         "question": question,
         "answer": answer,
         "source": [c["source"] for c in chunks],
-        "confidence": confidence
+        "confidence": confidence,
+        "chunks": chunks
     }
 
 

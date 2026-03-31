@@ -12,7 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def handle_query(question: str, source_filter: str) -> tuple[str, str]:
+def handle_query(question: str, source_filter: str) -> tuple[str, str, str]:
     if not question.strip():
         return "Please enter a question", ""
     
@@ -20,7 +20,9 @@ def handle_query(question: str, source_filter: str) -> tuple[str, str]:
     result = query(question, source_filter=source_filter)
     answer = result["answer"]
     sources = "\n".join(result["source"])
-    return answer, sources
+    confidence = f"{result['confidence']['level']} -- {result['confidence']['mean_distance']}"
+    return answer, sources, confidence
+
 
 def handle_ingest(files) -> str:
     if not files:
@@ -75,10 +77,15 @@ with gr.Blocks() as app:
             lines=4,
             interactive=False
         )
+        confidence_output = gr.Textbox(
+            label="Confidence",
+            lines=1,
+            interactive=False
+        )
         submit_btn.click(
             fn=handle_query,
             inputs=[question_input,source_dropdown],
-            outputs=[answer_output, sources_output]
+            outputs=[answer_output, sources_output, confidence_output]
         )
 
     with gr.Tab("Ingest"):

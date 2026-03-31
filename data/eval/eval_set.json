@@ -1,0 +1,122 @@
+[
+    {
+        "id": "q01",
+        "question": "What is statistical downscaling?",
+        "reference_answer": "Statistical downscaling is a method of increasing the spatial and temporal resolution of meteorological variables, typically the output of a Global Climate Model. It relies on learning statistical correlations between the coarse resolution data and higher resolution historical observed data.",
+        "source": null
+    },
+    {
+        "id": "q02",
+        "question": "What is the difference between statistical and dynamical downscaling?",
+        "reference_answer": "Statistical downscaling performs downscaling by learning statistical correlations between the coarse resolution data and higher resolution historical observed data, while dynamical downscaling builds and simulates a Regional Climate Model - a physics informed simulation of the governing equations of atmospheric dynamics, typically used in Global Climate Models, but now simulated on a smaller scale, bounded by the boundary conditions given by the Global Climate Model.",
+        "source": null
+    },
+    {
+        "id": "q03",
+        "question": "Why are GCM outputs insufficient for regional climate impact studies?",
+        "reference_answer": "Global Climate Models typically provide outputs on a grid of 25 to 250km. Many meteorologically significant events can occur, and many geographically significant factors can exist between grid points and therefore the GCM output is too coarse to capture meaningful detail on a regional scale.",
+        "source": null
+    },
+    {
+        "id": "q04",
+        "question": "What is the role of predictor variables in statistical downscaling?",
+        "reference_answer": "Predictor variables are the inputs to the statistical downscaling model, typically large-scale atmospheric variables from a Global Climate Model or reanalysis output, used to predict the fine-scale predictands.",
+        "source": null
+    },
+    {
+        "id": "q05",
+        "question": "What is bias correction in the context of climate downscaling?",
+        "reference_answer": "Global Climate Models have biases that are systemic to their output relative to the observed climate. These errors are not random but are consistent offsets. Bias correction is a post-processing stage that attempts to remove this offset from the coarse or downscaled output of a Global Climate Model.",
+        "source": null
+    },
+    {
+        "id": "q06",
+        "question": "What deep learning architectures are commonly used for precipitation downscaling?",
+        "reference_answer": "Convolutional Neural Networks, particularly architectures such as U-Net and Super-Resolution CNN architectures are commonly used. Recently, generative approaches, such as GANs, diffusion models and transformer models have been proposed and have been shown to yield superior fine-scale detail. Diffusion models in particular are naturally suited for producing ensembled outputs if required.",
+        "source": null
+    },
+    {
+        "id": "q07",
+        "question": "How does SRCNN apply to meteorological downscaling?",
+        "reference_answer": "SRCNN are CNN architectures initially proposed for the purpose of super-resolution, a problem in computer vision where low resolution inputs are converted to reasonable high resolution outputs, through a series of convolutional layers. The task of super-resolution is conceptually analogous to the meteorological problem of downscaling, where a low resolution input of meteorological data is converted to a reasonable high resolution output.",
+        "source": null
+    },
+    {
+        "id": "q08",
+        "question": "What advantages do CNNs have over traditional statistical methods for downscaling?",
+        "reference_answer": "CNNs learn spatially local features and non-linear relationships between the coarse inputs and fine-scale outputs directly from the training data, without explicit feature engineering. They are also able to exploit spatial context across multiple scales simultaneously more effectively than traditional statistical methods.",
+        "source": null
+    },
+    {
+        "id": "q09",
+        "question": "What is the role of residual learning in downscaling models?",
+        "reference_answer": "Residual learning is an approach to learning that allows a model to focus on learning a difference between two signals, rather than learning the direct mapping between those signals. In downscaling, the model learns the difference between interpolated coarse input and the target high resolution output.",
+        "source": null
+    },
+    {
+        "id": "q10",
+        "question": "How are U-Net architectures used in downscaling?",
+        "reference_answer": "U-Net architectures are neural network models with an encoder-decoder structure. The encoder network progressively reduces the spatial dimension and increases the features representation depth. The final encoded representation is therefore rich with context from the entire input. The decoder reverses this process. There are skip connections that bridge the corresponding intermediate layers of the encoder and decoder, thereby allowing the preservation of high-frequency spatial information. The result is a model that is able to capture both large-scale context and fine-scale detail.",
+        "source": null
+    },
+    {
+        "id": "q11",
+        "question": "What metrics are used to evaluate downscaling model performance?",
+        "reference_answer": "Downscaling models are typically evaluated using pixel-wise metrics such as Root Mean Square Error and Mean Absolute Error. To evaluate structural similarity, SSIM is used. Power Spectral Density can also be used to evaluate whether the model correctly captures structural coherence of weather systems.",
+        "source": null
+    },
+    {
+        "id": "q12",
+        "question": "How is RMSE used to evaluate downscaling models?",
+        "reference_answer": "RMSE is a measure of the average magnitude of pixel-wise errors between model output and high-resolution target. Large errors are penalised more heavily than small errors, due the squaring of the errors. As a result, the model is biased towards producing smoother outputs, missing fine-scale details.",
+        "source": null
+    },
+    {
+        "id": "q13",
+        "question": "What is the SSIM metric and how is it applied to downscaled outputs?",
+        "reference_answer": "SSIM is a metric used to evaluate the similarity between two images in terms of luminance, contrast and structure. It is used to penalise spatial incoherence, which is not directly penalised by RMSE and so is used as a complementary metric alongside RMSE.",
+        "source": null
+    },
+    {
+        "id": "q14",
+        "question": "How do deep learning downscaling models compare to traditional methods in terms of performance?",
+        "reference_answer": "Deep Learning downscaling models typically outperform traditional methods of statistical downscaling on metrics such as RMSE. Deterministic methods can produce overly smooth outputs, while generative approaches such as GANs and diffusion models have been shown to produce sharper outputs achieving superior perceptual metrics at the cost of higher RMSE relative to the deterministic models.",
+        "source": null
+    },
+    {
+        "id": "q15",
+        "question": "What datasets are commonly used to train downscaling models?",
+        "reference_answer": "ERA5 reanalysis data is the most widely used source of coarse-resolution input, providing meteorological information on a 31km resolution. High resolution observational data such as CHIRPS and IMERG are commonly used as targets for precipitation downscaling.",
+        "source": null
+    },
+    {
+        "id": "q16",
+        "question": "What are the typical input and output resolutions used in meteorological downscaling studies?",
+        "reference_answer": "Input resolutions typically range from 25km to 100km. Output resolutions typically vary from 1km to 10km. Typical scaling factors achieved are 4x to 16x.",
+        "source": null
+    },
+    {
+        "id": "q17",
+        "question": "How is training data prepared for deep learning downscaling models?",
+        "reference_answer": "Input and output data need to be spatially and temporally aligned. High-resolution target data needs to be regridded to the required projection and resolution. Depending on the model, the low resolution input data will be linearly interpolated to the higher resolution. Input and output data are typically normalised and, if the distribution is highly skewed, as is the case of precipitation, log-transformed.",
+        "source": null
+    },
+    {
+        "id": "q18",
+        "question": "What are the main limitations of deep learning approaches to downscaling?",
+        "reference_answer": "Almost all deep learning applications require large amounts of supervised data to train larger models. In the case of downscaling, this is large amounts of paired, aligned low and high resolution training data. Deterministic deep learning downscaling models have been shown to produce overly smooth outputs.",
+        "source": null
+    },
+    {
+        "id": "q19",
+        "question": "What challenges arise when downscaling precipitation specifically compared to other variables?",
+        "reference_answer": "Precipitation is highly skewed - there are many more dry days than there are days with precipitation. Extreme precipitation events are often poorly captured. Topography and convective processes are both highly impactful on the location, scale and nature of precipitation and are both often operative on scales missed by low resolution inputs and even some high resolution targets.",
+        "source": null
+    },
+    {
+        "id": "q20",
+        "question": "How do existing downscaling studies handle the lack of high-resolution ground truth data?",
+        "reference_answer": "High resolution reanalysis or gridded observational products are used as a proxy for ground truth, where high resolution ground truth is not present. Other studies attempt to use RCM output as targets, thereby attempting to perform dynamical downscaling using a deep learning model. Other general deep learning techniques used in data sparse applications have also been suggested, for example, data augmentation and transfer learning. Furthermore, generative models, such as diffusion models, are able to represent uncertainty rather than a single ground truth.",
+        "source": null
+    }
+]
