@@ -128,7 +128,10 @@ def query(question: str, source_filter: str | None = None) -> dict:
 
     context = build_context(chunks)
     answer = generate_answer(context, question)
-    confidence = assess_confidence(chunks)
+    if answer.startswith("Error:"):
+        confidence = {"level": "error", "mean_distance": None}
+    else:
+        confidence = assess_confidence(chunks)
     logger.info(f"Confidence: {confidence}")
 
 

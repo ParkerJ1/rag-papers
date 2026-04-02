@@ -34,6 +34,10 @@ def main():
     query_parser.add_argument("question", type=str, help="Question to ask the vector store")
     query_parser.add_argument("--filter", type=str, default = None, help="Filter results to a specific source PDF by filename")
 
+    zotero_parser = subparsers.add_parser("zotero", help="Ingest all PDFs from a Zotero collection")
+    zotero_parser.add_argument("collection", type=str, help="Name of the Zotero collection to ingest")
+    zotero_parser.add_argument("--parent", type=str, default=None, help="Name of the parent Zotero collection")
+
     args = parser.parse_args()
 
     if args.command == "ingest":
@@ -50,6 +54,11 @@ def main():
         print(f"Answer: {result['answer']}")
         print(f"Source: {set(result['source'])}")
         print(f"Confidence: {result['confidence']['level']} -- {result['confidence']['mean_distance']}")
+
+    elif args.command == "zotero":
+        from zotero import ingest_zotero_collection
+        ingest_zotero_collection(args.collection, parent_collection_name=args.parent)
+
 
 
 if __name__ == "__main__":
