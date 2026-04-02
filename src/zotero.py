@@ -83,9 +83,21 @@ def get_attachment_path(item_key: str) -> Path | None:
                 logger.warning(f"Resolved path does not exist: {path}")
     return None
 
+def get_item_children(item_key: str) -> list[dict]:
+    """Fetch all children of a given item."""
+    response = requests.get(
+        f"{ZOTERO_BASE_URL}/items/{item_key}/children",
+        headers=ZOTERO_HEADERS
+    )
+    response.raise_for_status()
+    return response.json()
 
+PARENT_ITEM_TYPES = {"journalArticle", "conferencePaper", "preprint", "report", "book", "bookSection", "thesis"}
 
 def get_pdf_attachments(collection_key: str) -> list[Path]:
+    """Get local PDF paths for all items in a collection. Only processes PDFs
+    attached to parent items (journalArticle, preprint, etc.) — standalone
+    attachments are excluded."""
     items = get_collection_items(collection_key)
     pdfs = []
 
@@ -93,18 +105,21 @@ def get_pdf_attachments(collection_key: str) -> list[Path]:
         data = item.get("data", {})
         item_type = data.get("itemType")
 
-        if item_type == "attachment" and data.get("contentType") == "application/pdf":
-            path = get_attachment_path(item["key"])
-            if path:
-                pdfs.append(path)
-                logger.info(f"Found PDF: {path.name}")
-            else:
-                logger.warning(f"Could not resolve attachment path for item {item['key']}.")
-
+        if item_type in PARENT_ITEM_TYPES:
+            children = get_item_children(item["key"])
+            for child in children:
+                child_data = child.get("data", {})
+                if child_data.get("itemType") == "attachment" and child_data.get("contentType") == "application/pdf":
+                    path = get_attachment_path(child["key"])
+                    if path:
+                        pdfs.append(path)
+                        logger.info(f"Found PDF (child of {item_type}): {path.name}")
+                    else:
+                        logger.warning(f"Could not resolve path for child attachment {child['key']}")
 
     return pdfs
 
-def ingest_zotero_collection(collection_name: str, parent_collection_name: str | None = None):
+def ingest_zotero_collection(collection_name: str, parent_collection_name: str | None = None, dry_run: bool = False):
     """Ingest all PDFs from a Zotero collection, by name"""
 
     parent_key = None

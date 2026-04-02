@@ -37,6 +37,7 @@ def main():
     zotero_parser = subparsers.add_parser("zotero", help="Ingest all PDFs from a Zotero collection")
     zotero_parser.add_argument("collection", type=str, help="Name of the Zotero collection to ingest")
     zotero_parser.add_argument("--parent", type=str, default=None, help="Name of the parent Zotero collection")
+    zotero_parser.add_argument("--dry-run", action="store_true", help="Print PDF paths with ingesting")
 
     args = parser.parse_args()
 
@@ -57,7 +58,7 @@ def main():
 
     elif args.command == "zotero":
         from zotero import ingest_zotero_collection
-        ingest_zotero_collection(args.collection, parent_collection_name=args.parent)
+        ingest_zotero_collection(args.collection, parent_collection_name=args.parent, dry_run=args.dry_run)
 
 
 
